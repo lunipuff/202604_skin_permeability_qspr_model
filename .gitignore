@@ -1,0 +1,86 @@
+# macOS
+.DS_Store
+
+# R
+.Rapp.history
+.Rhistory
+.RData
+.Rproj.user/
+
+# R package/cache files
+*.Rproj
+renv/library/
+renv/staging/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# virtual environments
+rdkit_env/
+.venv/
+env/
+
+# temporary files
+*.tmp
+*.log
+
+# large/raw data if needed
+data/raw/large/# macOS
+.DS_Store
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# R package/cache files
+*.Rproj
+renv/library/
+renv/staging/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# virtual environments
+rdkit_env/
+.venv/
+env/
+
+# temporary files
+*.tmp
+*.log
+
+# large/raw data if needed
+data/raw/large/# macOS
+.DS_Store
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# R package/cache files
+*.Rproj
+renv/library/
+renv/staging/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# virtual environments
+rdkit_env/
+.venv/
+env/
+
+# temporary files
+*.tmp
+*.log
+
+# large/raw data if needed
+data/raw/large/
