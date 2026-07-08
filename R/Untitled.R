@@ -1,0 +1,3 @@
+
+
+compound_id,CAS.No,Compound,SMILES_as_reported,SMILES_parent,structure_source,structure_note,structure_status,structure_type
