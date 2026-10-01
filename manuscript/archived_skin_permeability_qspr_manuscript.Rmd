@@ -104,7 +104,7 @@ We present a compound-aware, interpretable QSPR workflow for human skin permeabi
 
 The analysis followed a scripted workflow from dataset curation to model evaluation and applicability-domain assessment (Figure \@ref(fig:workflow)). The workflow included data cleaning, descriptor screening, compound-level model selection, benchmark comparison, diagnostic analyses, and sensitivity analyses.
 
-```{r workflow, echo=FALSE, fig.cap="(\\#fig:workflow) Compound-aware workflow for interpretable QSPR modeling of human skin permeability. The workflow begins with curation and harmonization of a literature-derived permeability dataset, followed by descriptor auditing and LOCO-CV formula selection. The selected interpretable model is then audited using benchmark comparison, applicability-domain analysis, interpretability analyses, and validation-design sensitivity analyses. The final output is a benchmarked QSPR model with a defined descriptor-space applicability domain.", out.width="100%", fig.align="center", fig.pos="H"}
+```{r workflow, echo=FALSE, fig.cap="(\\#fig:workflow) Compound-aware workflow for interpretable QSPR modeling of human skin permeability. The workflow begins with curation and harmonization of a literature-derived permeability dataset, followed by descriptor auditing and formula selection. The selected interpretable model is then audited using benchmark comparison, applicability-domain analysis, interpretability analyses, and validation-design sensitivity analyses. The final output is a benchmarked QSPR model with a defined descriptor-space applicability domain.", out.width="100%", fig.align="center", fig.pos="H"}
 knitr::include_graphics("../manuscript/figures/figure1_workflow.png")
 ```
 
@@ -193,7 +193,7 @@ To avoid selecting a more complex model for a negligible gain in prediction erro
 
 ### Performance metrics
 
-For each observation \(i = 1, \ldots, n\), let \(y_i\) denote the observed `logkpl` value and \(\hat{y}_i\) denote the corresponding LOCO-CV prediction. Prediction error was defined as
+For each observation \(i = 1, \ldots, n\), let \(y_i\) denote the observed `logkpl` value and \(\hat{y}_i\) denote the corresponding compound-level cross-validation prediction. Prediction error was defined as
 
 \[
 e_i = y_i - \hat{y}_i .
@@ -287,29 +287,11 @@ Descriptor relationships were examined for predictors retained in the selected Q
 
 For each selected predictor, the relationship with observed `logkpl` was visualized using scatter plots with LOWESS smoothing. Rug plots were added to show the empirical distribution of each descriptor. Descriptor quantile boundaries were overlaid at the 10th and 90th percentiles and at the 2.5th and 97.5th percentiles to show where observations were concentrated and where the descriptor space became sparse.
 
-Separately, an exploratory central descriptor-space subset was defined using molecular weight, lipophilicity, melting point, and aqueous solubility because these variables represent classical permeability-relevant physicochemical space. This subset was not used for model training or model selection. It was used only for diagnostic interpretation and later applicability-domain comparison. The central descriptor-space criteria were defined using fixed descriptor ranges:
-
-\[
-100 \leq \mathrm{MWa} \leq 250,
-\]
-
-\[
-0 \leq \log K_{ow} \leq 4,
-\]
-
-\[
-200 \leq \mathrm{Mptc} \leq 400,
-\]
-
-\[
--7 \leq \log S_{\mathrm{aq}} \leq -4.
-\]
-
-The number and proportion of observations and unique compounds falling within this central descriptor-space subset were exported as a summary table.
+For applicability-domain classification, descriptor coverage was defined using empirical percentile ranges of the predictors retained in the selected model. For each selected descriptor, observations within the 10th–90th percentile range were classified as central, observations between the 2.5th–10th or 90th–97.5th percentile ranges were classified as intermediate, and observations outside the 2.5th–97.5th percentile range were classified as outside the broad descriptor domain. Observation-level domain categories were then summarized across selected descriptors to compare prediction error within central, intermediate, and outside-domain regions. This percentile-based classification was used only for applicability-domain interpretation and was not used for model fitting or model selection.
 
 ### Ablation analysis
 
-Ablation analysis was performed to evaluate how the selected QSPR model depended on its retained descriptor groups and model structure. The selected model was refitted and re-evaluated under LOCO-CV after removing specific groups of terms. Ablation models included removal of molecular-weight terms, melting-point terms, aqueous-solubility terms, octanol-solubility terms, experimental-temperature terms, interaction terms, and all nonlinear terms. A linear selected-predictor model was also evaluated by retaining only the base predictors from the selected model. All ablation models were evaluated on a common complete-case dataset so that performance differences reflected model structure rather than changes in sample composition.
+Ablation analysis was performed to evaluate how the selected QSPR model depended on its retained descriptor groups and model structure. The selected model was refitted and re-evaluated under cross-validation after removing specific groups of terms. Ablation models included removal of molecular-weight terms, melting-point terms, aqueous-solubility terms, octanol-solubility terms, experimental-temperature terms, interaction terms, and all nonlinear terms. A linear selected-predictor model was also evaluated by retaining only the base predictors from the selected model. All ablation models were evaluated on a common complete-case dataset so that performance differences reflected model structure rather than changes in sample composition.
 
 For each ablation model, LOCO-CV predictions were generated using the same compound-level splitting procedure as the primary model. Performance was summarized using RMSE, MAE, predictive \(R^2\), Pearson correlation, mean error, median absolute error, and the proportion of observations with absolute error greater than 1 log unit. Differences in RMSE, MAE, and predictive \(R^2\) were calculated relative to the full selected model. This analysis was used to assess the contribution of selected descriptor groups and nonlinear or interaction terms to predictive performance.
 
@@ -323,7 +305,7 @@ Because the selected model included an interaction between molecular weight (`MW
 
 ### Row-wise cross-validation sensitivity analysis
 
-A row-wise cross-validation sensitivity analysis was performed to assess how validation results changed when compound identity was ignored during data splitting. Unlike LOCO-CV, random row-wise splitting can assign different observations of the same compound to both training and test sets. This setting may therefore produce optimistic estimates of generalization when repeated compound measurements are present.
+A row-wise cross-validation sensitivity analysis was performed to assess how validation results changed when compound identity was ignored during data splitting. Unlike compound-level cross-validation, random row-wise splitting can assign different observations of the same compound to both training and test sets. This setting may therefore produce optimistic estimates of generalization when repeated compound measurements are present.
 
 The selected QSPR formula was re-evaluated using repeated 5-fold row-wise cross-validation. In each repeat, observations were randomly assigned to five folds; the model was fitted on four folds and evaluated on the remaining fold until every observation had been predicted once per repeat. The procedure was repeated 50 times. Predictions were then pooled across folds and repeats.
 
@@ -339,23 +321,21 @@ This validation setting approximates a practical use case in which a model devel
 
 ### Coefficient-stability analysis
 
-Coefficient stability was assessed by refitting each candidate model across the same LOCO-CV training folds and recording fold-specific coefficient estimates. For each term in the selected model, coefficient variability was summarized by the mean, standard deviation, and relative standard deviation across left-out-compound folds. This analysis was used to assess parameter stability and interpretability, but it was not used as an additional model-selection criterion.
+Coefficient stability was assessed by refitting the selected model across the compound-level cross-validation training folds and summarizing fold-specific coefficient estimates. For each retained term, the mean, standard deviation, and relative standard deviation of the coefficient estimate were calculated across folds. This analysis was used only as an interpretability diagnostic and was not used for model selection.
 
-### LOCO-CV error diagnostics
+### Compound-level cross-validation error diagnostics
 
-After model selection, LOCO-CV residuals and absolute errors were summarized to characterize prediction behavior. Diagnostic summaries included mean residual error, median absolute error, the number and proportion of observations with absolute error greater than 1 log unit, and descriptor-wise residual patterns. The 1-log-unit threshold was used as a pragmatic cutoff for predictions differing from observed permeability by at least one order of magnitude.
-
-Diagnostic plots included observed-versus-predicted `logkpl`, residual error against candidate descriptors, absolute prediction error against candidate descriptors, and the empirical density of LOCO-CV prediction errors. A high-error compound table was also generated by extracting observations with absolute LOCO-CV error greater than 1 log unit. These diagnostics were used to characterize model errors and guide interpretation; they were not used to refit or reselect the final model.
+After model selection, compound-level cross-validation residuals and absolute errors were summarized to characterize prediction behavior. Diagnostics included descriptor-wise residual plots, descriptor-wise absolute-error plots, prediction-error density, and identification of observations with absolute error greater than 1 log unit. These diagnostics were used to characterize model errors and were not used to refit or reselect the final model.
 
 ### Heteroscedastic uncertainty analysis
 
-A secondary heteroscedastic uncertainty analysis was performed to examine whether prediction uncertainty varied across descriptor space. The selected QSPR model was used as the mean function, and Gaussian variance models were fitted with log-variance modeled as a function of candidate variance predictors. Models were evaluated under the same LOCO-CV splitting scheme and compared using interval coverage, predicted standard deviation, RMSE, and the correlation between absolute error and predicted uncertainty. This analysis characterized uncertainty behavior but did not alter the selected mean model.
+A secondary heteroscedastic uncertainty analysis was performed to examine whether prediction uncertainty varied across descriptor space. The selected QSPR model was used as the mean function, and Gaussian variance models were fitted with log-variance modeled as a function of candidate variance predictors. This analysis characterized uncertainty behavior but did not alter the selected mean model.
 
 # Results
 
 ## Cleaned modeling dataset
 
-The cleaned dataset contained `r final_observations` observations representing `r final_compounds` unique compounds. Cleaning steps and dataset attrition are summarized in Table \@ref(tab:data-cleaning).
+The cleaned dataset contained `r final_observations` observations representing `r final_compounds` unique compounds (Table \@ref(tab:data-cleaning)). The main reduction in observations occurred during collapsing of repeated experimental profiles, while the number of unique compounds remained unchanged after required-field filtering.
 
 ```{r data-cleaning, echo=FALSE}
 table1_path <- p(
@@ -379,9 +359,11 @@ knitr::kable(
 )
 ```
 
+This repeated-observation structure motivated compound-level validation, while the retained descriptor set (Table \@ref(tab:descriptor-table)) required redundancy screening before model interpretation.
+
 ## Descriptor redundancy and candidate predictor structure
 
-General descriptor redundancy screening showed that the full candidate descriptor pool contained substantial collinearity, especially among the solubility- and partitioning-related variables. The strongest redundancy was observed for `logKowb`, `LogSaqd`, and `LogSoce`, which produced extremely large variance inflation factors (Table \@ref(tab:vif-summary)). This pattern is consistent with near-deterministic overlap among lipophilicity, aqueous solubility, and octanol solubility. Pairwise correlations also showed expected redundancy among molecular-size descriptors, particularly molecular weight (`MWa`) and molecular volume (`MVh`) (Figure \@ref(fig:descriptor-correlation)).
+General descriptor redundancy screening showed that the full candidate descriptor pool contained substantial collinearity, especially among the solubility- and partitioning-related variables (Table \@ref(tab:vif-summary)). The strongest redundancy was observed for `logKowb`, `LogSaqd`, and `LogSoce`, which produced extremely large variance inflation factors. This pattern is consistent with very strong overlap among lipophilicity, aqueous solubility, and octanol solubility. Pairwise correlations showed expected redundancy among molecular-size descriptors, particularly molecular weight (`MWa`) and molecular volume (`MVh`) (Figure \@ref(fig:descriptor-correlation)).
 
 ```{r fig-descriptor-correlation, echo=FALSE, fig.cap="(\\#fig:descriptor-correlation) Candidate descriptor correlation structure. Pairwise Pearson correlations among candidate molecular descriptors and experimental-condition variables. The figure highlights strong redundancy between molecular weight and molecular volume, as well as substantial correlations among solubility- and partitioning-related descriptors.", out.width="90%", fig.align="center", fig.pos="H"}
 knitr::include_graphics(
@@ -389,7 +371,7 @@ knitr::include_graphics(
 )
 ```
 
-These results indicate that the full candidate descriptor pool should not be interpreted as a set of independent mechanistic effects. In particular, solubility- and partitioning-related descriptors may capture overlapping physicochemical information rather than separable causal contributions to permeability. Similarly, `MWa` and `MVh` represent closely related aspects of molecular size. In contrast, experimental temperature (`Texpi`) and skin thickness (`Skin.thicknessj`) showed low redundancy with the molecular descriptors, suggesting that they captured experimental-context variation rather than molecular-structure redundancy (Figure \@ref(fig:descriptor-correlation); Table \@ref(tab:vif-summary)).
+These results indicate that the full candidate descriptor pool should not be interpreted as a set of independent mechanistic effects. In particular, solubility- and partitioning-related descriptors may capture overlapping physicochemical information rather than separable causal contributions to permeability. Similarly, `MWa` and `MVh` represent closely related aspects of molecular size. In contrast, experimental temperature (`Texpi`) and skin thickness (`Skin.thicknessj`) showed low redundancy with the molecular descriptors, suggesting that they captured experimental-context variation rather than molecular-structure redundancy.
 
 ```{r load-vif-values, echo=FALSE}
 final_base_vif <- read.csv(
@@ -418,11 +400,10 @@ get_vif <- function(descriptor_name) {
 	sprintf("%.2f", value)
 }
 ```
-Because of this descriptor structure, redundancy screening was used to guide candidate-model construction and interpretation rather than to exclude individual descriptors automatically. Final descriptor retention was determined by cross-validated model performance. The severe multivariable redundancy observed in the full candidate pool was not retained in the final selected model. In particular, the final model excluded `logKowb`, and variance inflation factors for the retained base predictors were low to moderate (`MWa`, `r get_vif("MWa")`; `LogSaqd`, `r get_vif("LogSaqd")`; `LogSoce`, `r get_vif("LogSoce")`; `Mptc`, `r get_vif("Mptc")`; `Texpi`, `r get_vif("Texpi")`), supporting model interpretation without evidence of severe multicollinearity among retained base predictors (Table \@ref(tab:vif-summary)).
 
-The retained solubility terms should therefore be interpreted cautiously as descriptors of overlapping partitioning and solubility behavior, not as fully independent causal effects. Nevertheless, the final selected model was not dominated by the severe collinearity observed in the full candidate descriptor pool.
+Because of this descriptor structure, redundancy screening was used to guide candidate-model construction and interpretation rather than to exclude individual descriptors automatically. Final descriptor retention was determined by cross-validated model performance. The severe multivariable redundancy observed in the full candidate pool was not retained in the final selected model. In particular, the final model excluded `logKowb`, and variance inflation factors for the retained base predictors were low to moderate (Table \@ref(tab:vif-summary)), supporting model interpretation without evidence of severe multicollinearity among retained base predictors. The retained solubility terms should therefore be interpreted cautiously as descriptors of overlapping partitioning and solubility behavior, not as fully independent causal effects. Nevertheless, the final selected model was not dominated by the severe collinearity observed in the full candidate descriptor pool.
 
-
+With this redundancy structure defined, candidate-model selection was performed under compound-level validation so that final descriptor retention was determined by predictive performance rather than by marginal descriptor screening alone.
 
 ## Compound-level selection of the interpretable QSPR model
 
@@ -468,7 +449,7 @@ selected_model_mae <- fmt3(selected_model_performance$MAE)
 selected_model_r2 <- fmt3(selected_model_performance$R2_pred)
 ```
 
-Among the candidate models evaluated under compound-level cross-validation, the lowest-RMSE model achieved slightly better predictive performance but required greater complexity. The final model was therefore selected as a simpler near-optimal alternative, with only a small increase in RMSE relative to the best-RMSE candidate (Table \@ref(tab:model-selection)). This selection retained the main physicochemical and experimental-condition terms needed for interpretation while avoiding additional terms that provided limited improvement in cross-validated error. The observed-versus-predicted plot further shows that predictions from the final selected model generally followed the one-to-one reference line across the curated dataset (Figure \@ref(fig:loco-cv-observed-predicted)). The final model achieved RMSE = `r selected_model_rmse`, MAE = `r selected_model_mae`, and predictive \(R^2\) = `r selected_model_r2`. In Figure \@ref(fig:loco-cv-observed-predicted), point color represents signed prediction error, calculated as observed minus predicted `logKp`; blue points indicate overprediction, orange points indicate underprediction, and pale points indicate predictions close to the observed value.
+The equation is shown in symbolic form for readability. Fitted coefficient estimates are reported in Supplementary Table \@ref(tab:final-model-coefficients). Among the candidate models evaluated under compound-level cross-validation, the lowest-RMSE model achieved slightly better predictive performance but required greater complexity. The final model was therefore selected as a simpler near-optimal alternative, with only a small increase in RMSE relative to the best-RMSE candidate (Table \@ref(tab:model-selection)). This selection retained the main physicochemical and experimental-condition terms needed for interpretation while avoiding additional terms that provided limited improvement in cross-validated error. Thus, model selection favored interpretability with minimal loss of compound-level predictive performance, using fewer base predictors and fewer total terms than the lowest-RMSE candidate, while increasing RMSE by only 0.006 log units.
 
 ```{r table2-model-selection, echo=FALSE, results='asis'}
 table2_model_selection <- read.csv(
@@ -493,17 +474,19 @@ knitr::kable(
 	)
 ```
 
+The observed-versus-predicted plot further shows that predictions from the final selected model generally followed the one-to-one reference line across the curated dataset (Figure \@ref(fig:loco-cv-observed-predicted)). The final model achieved RMSE = `r selected_model_rmse`, MAE = `r selected_model_mae`, and predictive \(R^2\) = `r selected_model_r2`. In Figure \@ref(fig:loco-cv-observed-predicted), point color represents signed prediction error, calculated as observed minus predicted `logKp`; blue points indicate overprediction, orange points indicate underprediction, and pale points indicate predictions close to the observed value.
+
 ```{r fig-observed-vs-loco-predicted, echo=FALSE, fig.cap = "(\\#fig:loco-cv-observed-predicted) Observed versus compound-level cross-validated predicted skin permeability for the final selected model. The dashed line indicates perfect agreement between observed and predicted values. Point color indicates signed prediction error, calculated as observed minus predicted `logKp`.", out.width="90%", fig.align="center", fig.pos="H"}
 knitr::include_graphics(
 	"../figures/figure_loco_cv_observed_vs_predicted.png"
 )
 ```
 
-
+The selected model therefore provided a transparent near-optimal parametric representation of the compound-level prediction task.
 
 ## Benchmark comparison
 
-Benchmark performance is summarized in Table \@ref(tab:benchmark-model-performance). The selected interpretable model improved substantially over the null and Potts--Guy-style baselines and approached the performance of random-forest benchmarks, while retaining a transparent parametric form. Benchmark observed-versus-predicted plots are provided in Supplementary Figure \@ref(fig:benchmark-observed-predicted).
+Benchmark performance is summarized in Table \@ref(tab:benchmark-model-performance). The selected interpretable model improved substantially over the null and Potts-Guy-style baselines and approached the performance of random-forest benchmarks, while retaining a transparent parametric form. Benchmark observed-versus-predicted plots are provided in Supplementary Figure \@ref(fig:benchmark-comparison).
 
 ```{r table4-benchmark-model-performance, echo=FALSE, results='asis'}
 table4_benchmark <- read.csv(
@@ -540,13 +523,11 @@ knitr::kable(
 	)
 ```
 
-
+The benchmark results indicate that the selected model captured most of the predictive signal available to flexible selected-predictor models, while remaining more interpretable than the random-forest alternatives. The selected interpretable model reduced RMSE relative to both the Potts–Guy-style benchmark and the linear selected-predictor model, while remaining close to the selected-predictor random forest. The small difference between the selected model and random forest indicates that most of the recoverable signal in this descriptor set was captured by the transparent parametric structure. The RDKit molecular-only random forest did not improve over the selected interpretable model, whereas adding experimental-condition variables to the RDKit descriptor set brought performance close to the selected-predictor random forest. This pattern supports the importance of experimental-context information in this curated permeability dataset.
 
 ## Applicability-domain analysis
 
-The descriptor-space applicability domain was defined using empirical percentile ranges of the selected model descriptors. For each descriptor, the central domain was defined as the 10th–90th percentile range, the intermediate domain as the 2.5th–10th and 90th–97.5th percentile ranges, and the outside domain as values beyond the 2.5th–97.5th percentiles. Figure \@ref(fig:descriptor-logkp-relationships) shows how observations are distributed across these descriptor ranges and how each selected descriptor relates to observed `logKp`.
-
-The shaded regions show that most observations fall within the central or intermediate descriptor ranges, while fewer observations occupy the outer descriptor space. These outer regions represent areas where predictions are more extrapolative and should be interpreted more cautiously. The LOWESS curves are descriptive only and are used to show empirical descriptor–response patterns, not fitted model effects.
+The descriptor-space applicability domain was defined using empirical percentile ranges of the selected model descriptors. For each descriptor, the central domain was defined as the 10th–90th percentile range, the intermediate domain as the 2.5th–10th and 90th–97.5th percentile ranges, and the outside domain as values beyond the 2.5th–97.5th percentiles. Figure \@ref(fig:descriptor-logkp-relationships) shows how observations are distributed across these descriptor ranges and how each selected descriptor relates to observed `logKp`. The shaded regions show that most observations fall within the central or intermediate descriptor ranges, while fewer observations occupy the outer descriptor space. These outer regions represent areas where predictions are more extrapolative and should be interpreted more cautiously. The LOWESS curves are descriptive only and are used to show empirical descriptor–response patterns, not fitted model effects.
 
 ```{r fig-descriptor-applicability, echo=FALSE, fig.cap = "(\\#fig:descriptor-logkp-relationships) Descriptor-space applicability domain for the selected model. Each panel shows the relationship between a selected model descriptor and observed `logKp`. Shaded regions indicate descriptor-space coverage: central range, 10th–90th percentile; intermediate range, 2.5th–10th and 90th–97.5th percentiles; outside range, beyond the 2.5th–97.5th percentiles. The solid line shows a LOWESS smoother.", out.width="90%", fig.align="center", fig.pos="H"}
 knitr::include_graphics(
@@ -554,43 +535,183 @@ knitr::include_graphics(
 )
 ```
 
-Prediction performance was consistent with this descriptor-domain structure. Error was lowest within the central descriptor domain and increased as observations moved farther from the main descriptor distribution. Across the full modeling dataset, the selected model achieved RMSE = 0.680, MAE = 0.506, and median absolute error = 0.387, with 14.3% of observations exceeding 1 log unit absolute error. Within the central descriptor domain, error was lower (RMSE = 0.577; MAE = 0.414; median absolute error = 0.298; 11.7% > 1 log unit), whereas error was highest outside the broad descriptor domain (RMSE = 0.892; MAE = 0.703; median absolute error = 0.504; 30.0% > 1 log unit). These results support using descriptor-domain classification as a warning flag for extrapolative predictions rather than as a strict exclusion rule.
+Prediction performance was consistent with this descriptor-domain structure (Table \@ref(tab:applicability-domain-error-summary)). Error was lowest within the central descriptor domain and increased as observations moved farther from the main descriptor distribution. Within the central descriptor domain, RMSE decreased from 0.680 for the full dataset to 0.577, whereas observations with at least one selected descriptor outside the 2.5th-97.5th percentile range had the highest error (RMSE = 0.892; MAE = 0.703; 30.0% > 1 log unit). These results support using descriptor-domain classification as a warning flag for extrapolative predictions rather than as a strict exclusion rule.
+
+```{r table-applicability-domain-error-summary, echo=FALSE, results='asis'}
+table_applicability_domain_error_summary <- read.csv(
+	p(
+		"manuscript",
+		"tables",
+		"table6_applicability_domain_error_summary.csv"
+	),
+	stringsAsFactors = FALSE,
+	check.names = FALSE
+)
+
+knitr::kable(
+	table_applicability_domain_error_summary,
+	caption = "(\\#tab:applicability-domain-error-summary) Prediction-error summary by descriptor-space applicability-domain category.",
+	booktabs = TRUE,
+	align = c("l", "r", "r", "r", "r"),
+	format = "latex"
+) |>
+	kableExtra::kable_styling(
+		latex_options = c(
+			"HOLD_position"
+		),
+		position = "center",
+		font_size = 8
+	) |>
+	kableExtra::footnote(
+		general = "The central descriptor domain was defined using the 10th-90th percentile ranges of selected model descriptors. Outside-domain observations had at least one selected descriptor outside the 2.5th-97.5th percentile range.",
+		general_title = "Note. ",
+		footnote_as_chunk = TRUE,
+		threeparttable = TRUE,
+		escape = FALSE
+	)
+```
+
+The selected model should therefore be treated not as a universally applicable predictor, but as a descriptor-domain-aware model whose predictions are most reliable within well-sampled physicochemical space.
 
 ## Ablation analysis
 
-Ablation analysis supported the contribution of multiple components of the selected model rather than a single dominant term. Removing aqueous-solubility terms produced the largest performance loss, followed by removal of nonlinear terms, octanol-solubility, molecular-weight, and melting-point components. Removal of the experimental-temperature term had little effect on cross-validated error (Table \@ref(tab:ablation-analysis-summary)).
+Ablation analysis was used to test how much the selected model depended on each retained descriptor group or model structure. In this analysis, the full selected model was treated as the reference model, and modified versions were evaluated after removing one component at a time. Larger increases in prediction error after removal indicate that the removed component contributed more strongly to the model’s predictive performance.
+
+The results supported the contribution of multiple components rather than a single dominant term. Removing aqueous-solubility terms and their interaction with molecular weight produced the largest performance loss, increasing RMSE from 0.680 to 0.902 and MAE from 0.506 to 0.742. This indicates that aqueous solubility was a major contributor to the selected model’s predictive structure. Removing all nonlinear terms also reduced performance substantially, consistent with the selected model capturing curved rather than purely linear descriptor-response relationships. Removal of octanol-solubility, molecular-weight, and melting-point components produced smaller but still noticeable increases in prediction error, whereas removal of the experimental-temperature term had little effect on cross-validated error (Table \@ref(tab:ablation-analysis-summary)). Overall, the ablation results indicate that the selected model’s performance was driven mainly by solubility-related and nonlinear physicochemical structure, with additional contributions from molecular size and melting-point terms. These ablation results motivated closer inspection of the selected model’s fitted effects, particularly the nonlinear solubility terms and the `MWa:LogSaqd` interaction.
+
+Because the largest performance losses involved solubility-related and nonlinear terms, the fitted effect structure was examined directly using partial-effect and interaction-effect analyses.
 
 ## Partial-effect and interaction-effect analysis
 
-Report the direction and shape of model-estimated effects across supported descriptor ranges. (Figure \@ref(fig:partial-effect))
+Partial-effect analysis was used to interpret the direction and shape of the selected parametric model after accounting for the other retained predictors (Figure \@ref(fig:partial-effects-selected-model)). Unlike the descriptor-response plots in Figure \@ref(fig:descriptor-logkp-relationships), these curves represent model-estimated effects with other predictors held at fixed reference values. The results showed that predicted `logKp` decreased with increasing molecular weight, consistent with reduced permeability for larger molecules. Melting point showed a nonlinear pattern, with relatively higher predicted permeability in the mid-range and lower predicted permeability at higher melting points. Aqueous solubility also showed a nonlinear negative relationship across the supported range, whereas octanol solubility showed a positive association with predicted permeability. The experimental-temperature effect was comparatively weak, consistent with the ablation result showing little loss of performance after removing the temperature term.
 
-```{r fig-partial-effect, echo=FALSE, fig.cap="(\\#fig:partial-effect) Partial-effect plots and Interaction-effect plot for the selected interaction term.", out.width="90%", fig.align="center", fig.pos="H"}
+```{r fig-partial-effect, echo=FALSE, fig.cap = "(\\#fig:partial-effects-selected-model) Partial-effect interpretation of the selected QSPR model. Points show observed data, rugs show the empirical descriptor distributions, and solid lines show model-estimated partial effects calculated while holding other predictors at their median values.", out.width="90%", fig.align="center", fig.pos="H"}
 knitr::include_graphics(
 	"../figures/figure_partial_effects_selected_model.png"
 )
 ```
 
+Because the selected model included an interaction between molecular weight (`MWa`) and aqueous solubility (`LogSaqd`), this interaction was visualized separately (Figure \@ref(fig:interaction-effect-MWa-LogSaqd)). Panel A shows the fitted interaction surface across the supported molecular-weight and aqueous-solubility ranges while overlaid points show observed values. The surface indicates that predicted `logKp` was highest for lower-molecular-weight compounds with lower aqueous solubility, and decreased toward regions with higher molecular weight and higher aqueous solubility. The distribution of observed points also shows that some areas of the interaction surface are more strongly supported by data than others, so sparsely populated regions should be interpreted cautiously.
+
+Panel B shows conditional molecular-weight effects at low, median, and high aqueous-solubility levels, corresponding to the 10th, 50th, and 90th percentiles of observed `LogSaqd`. Across all three aqueous-solubility levels, predicted `logKp` decreased with increasing molecular weight. However, the vertical separation and slope differences among the three curves indicate that the model-estimated molecular-weight effect was conditional on aqueous solubility. Lower `LogSaqd` values were associated with higher predicted `logKp` across much of the molecular-weight range, whereas higher `LogSaqd` values were associated with lower predicted `logKp`. Overall, the partial-effect and interaction-effect patterns support interpretation of the selected model as a physicochemical permeability model driven by molecular size, solid-state/solubility-related properties, nonlinear solubility behavior, and interaction between molecular size and aqueous solubility.
+
+```{r fig-interaction-effect-MWa-LogSaqd, echo=FALSE, fig.cap = "(\\#fig:interaction-effect-MWa-LogSaqd) Interaction-effect interpretation for molecular weight and aqueous solubility in the selected QSPR model. Panel A shows the fitted interaction surface across molecular weight and aqueous solubility; background color and contour lines indicate model-predicted `logKp`, while overlaid circle fill indicates reported observed `logKp` at each observed descriptor combination. Panel B shows conditional molecular-weight effect curves at low, median, and high aqueous-solubility levels, corresponding to the 10th, 50th, and 90th percentiles of observed `LogSaqd`. The Panel B background uses the same color scale as a visual reference for predicted `logKp`; other selected predictors were held at their median values.", out.width="95%", fig.align="center", fig.pos="H"}
+knitr::include_graphics(
+	p(
+		"figures",
+		"figure_interaction_MWa_LogSaqd_AB.png"
+	)
+)
+```
+
 ## Validation-design sensitivity analysis
 
-Report the comparison among primary LOCO-CV, repeated row-wise 5-fold CV, and leave-one-reference-out CV.
+```{r define_loro_validation_units, echo=FALSE}
+validation_design_sensitivity <- read.csv(
+	p(
+		"tables",
+		"table_validation_design_sensitivity.csv"
+	),
+	stringsAsFactors = FALSE,
+	check.names = FALSE
+)
 
-**Table. Validation-design sensitivity summary**
+validation_design_sensitivity <- validation_design_sensitivity[
+	,
+	c(
+		"validation_design",
+		"held_out_unit",
+		"n_validation_units",
+		"RMSE",
+		"MAE",
+		"R2_pred",
+		"proportion_compound_seen_in_training"
+	),
+	drop = FALSE
+]
+
+loro_validation_units <- validation_design_sensitivity$n_validation_units[
+	validation_design_sensitivity$validation_design == "Leave-one-reference-out CV"
+]
+
+if (length(loro_validation_units) != 1) {
+	stop(
+		"Expected exactly one row for Leave-one-reference-out CV.",
+		call. = FALSE
+	)
+}
+```
+
+Validation-design sensitivity analysis was used to compare the primary compound-level validation result with two alternative resampling schemes (Table \@ref(tab:table-validation-design-sensitivity)). The primary analysis withheld all observations for one compound at a time, whereas repeated row-wise 5-fold cross-validation ignored compound identity during splitting. Leave-one-reference-out cross-validation instead withheld all observations from one literature reference at a time, across `r loro_validation_units` reference-level validation units, providing a robustness check against source-specific experimental heterogeneity. These analyses were not used for model selection, but were used to assess how strongly the reported performance depended on the validation design.
+
+```{r table-validation-design-sensitivity, echo=FALSE, results='asis'}
+validation_design_sensitivity_table <- data.frame(
+	"Validation design" = validation_design_sensitivity$validation_design,
+	"Held-out unit" = validation_design_sensitivity$held_out_unit,
+	"RMSE" = sprintf(
+		"%.3f",
+		validation_design_sensitivity$RMSE
+	),
+	"MAE" = sprintf(
+		"%.3f",
+		validation_design_sensitivity$MAE
+	),
+	"Predictive R2" = sprintf(
+		"%.3f",
+		validation_design_sensitivity$R2_pred
+	),
+	"Compound overlap (%)" = sprintf(
+		"%.1f",
+		100 * validation_design_sensitivity$proportion_compound_seen_in_training
+	),
+	check.names = FALSE,
+	stringsAsFactors = FALSE
+)
+knitr::kable(
+	validation_design_sensitivity_table,
+	caption = "(\\#tab:validation-design-sensitivity) Validation-design sensitivity summary.",
+	booktabs = TRUE,
+	align = c("l", "l", "r", "r", "r", "r"),
+	format = "latex"
+) |>
+	kableExtra::kable_styling(
+		latex_options = c(
+			"HOLD_position",
+			"scale_down"
+		),
+		position = "center",
+		font_size = 8
+	) |>
+	kableExtra::footnote(
+		general = "Row-wise cross-validation used 50 repeated 5-fold splits.",
+		general_title = "Note. ",
+		footnote_as_chunk = TRUE,
+		threeparttable = TRUE,
+		escape = FALSE
+	)
+```
+
+The repeated row-wise analysis produced slightly lower error than the primary compound-level validation, with RMSE decreasing from 0.680 to 0.671 and MAE decreasing from 0.506 to 0.496. This improvement was small, but it occurred in a validation design where approximately 73.5% of test observations had the same compound represented in the corresponding training data. This confirms that row-wise validation estimates a less stringent prediction task than compound-level validation.
+
+Leave-one-reference-out cross-validation produced higher error than the primary compound-level analysis, with RMSE = 0.709 and MAE = 0.528. This indicates that prediction was more difficult when entire literature sources were withheld, consistent with reference-level heterogeneity in experimental protocol, compound selection, or reporting. Overall, the sensitivity analysis supports the primary compound-level validation result while showing that validation design affects the apparent difficulty of the prediction task.
 
 ## Supplementary diagnostic results
 
-Explain Coefficient-stability analysis, LOCO-CV error diagnostics, Heteroscedastic uncertainty analysis
+Additional diagnostic analyses were used to assess parameter stability, residual behavior, and uncertainty structure for the selected model. These analyses were not used for model selection, but were retained as supplementary checks to support interpretation of the final model.
 
-Possible supplementary tables/figures:
+### Coefficient stability
 
-**Table. Coefficient-stability summary across LOCO-CV folds**
+Coefficient-stability analysis showed that most retained model terms were stable across compound-level training folds (Supplementary Table \@ref(tab:coefficient-stability-summary)). Most coefficients had low relative variability, indicating that their estimates were not strongly driven by the removal of individual compounds. The main exception was the molecular-weight main effect (`MWa`), which had higher relative variability and should be interpreted cautiously because `MWa` also appears in the `MWa:LogSaqd` interaction. The interaction term itself was comparatively stable, supporting the robustness of the model-estimated coupling between molecular weight and aqueous solubility.
 
-**Figure. Coefficient stability across LOCO-CV folds**
+### Residual and absolute-error diagnostics
 
-**Figure. LOCO-CV residual and absolute-error diagnostics**
+Residual and absolute-error diagnostics showed no single dominant descriptor region where the selected model failed systematically (Supplementary Figures \@ref(fig:loco-cv-residual-diagnostics) and \@ref(fig:loco-cv-absolute-error-diagnostics)). Prediction errors were generally centered near zero across candidate descriptors, indicating no strong global directional bias. Larger errors were present for some observations, but they were not confined to one obvious descriptor axis. The prediction-error density was also centered close to zero, while its tails showed that occasional large errors remained (Supplementary Figure \@ref(fig:error-density)).
 
-**Figure. Error-density distribution**
+### Heteroscedastic uncertainty diagnostics
 
-**Figure. Heteroscedastic uncertainty diagnostics**
+Heteroscedastic uncertainty diagnostics indicated that prediction uncertainty was not completely uniform across the model output range (Supplementary Figure \@ref(fig:heteroscedastic-uncertainty)). Predicted uncertainty varied across observations, and most observations were consistent with the estimated prediction intervals, although some remained outside the interval bounds. The relationship between predicted uncertainty and absolute error was imperfect, so this analysis should be interpreted as a diagnostic warning layer rather than as a precise observation-level error predictor.
+
+Together, these supplementary analyses support the main model audit by showing that the selected model was reasonably stable across compound-level folds, showed no strong global residual bias, and had identifiable but imperfect uncertainty structure. These results strengthen interpretation of the model as an auditable screening and interpretation tool, while reinforcing that predictions should be interpreted with attention to descriptor coverage, experimental heterogeneity, and prediction uncertainty rather than as exact compound-level permeability estimates.
 
 # Discussion
 
@@ -676,14 +797,56 @@ knitr::kable(
 	format = "latex"
 ) |>
 	kableExtra::kable_styling(
-		latex_options = c("HOLD_position"),
-		position = "center"
+		latex_options = c(
+			"HOLD_position",
+			"scale_down"
+		),
+		position = "center",
+		font_size = 8
 	)
 ```
 
-```{r fig-benchmark-comparison, echo=FALSE, fig.cap="(\\#fig:benchmark-comparison) Benchmark performance comparison.", out.width="90%", fig.align="center", fig.pos="H"}
+```{r tableS4-final-model-coefficients, echo=FALSE, results='asis'}
+tableS4_final_model_coefficients <- read.csv(
+	p(
+		"manuscript",
+		"tables",
+		"tableS4_final_model_coefficients.csv"
+	),
+	stringsAsFactors = FALSE,
+	check.names = FALSE
+)
+
+knitr::kable(
+	tableS4_final_model_coefficients,
+	caption = "(\\#tab:final-model-coefficients) Final fitted coefficients of the selected interpretable QSPR model.",
+	booktabs = TRUE,
+	align = c("l", "r", "r", "r", "r"),
+	format = "latex"
+) |>
+	kableExtra::kable_styling(
+		latex_options = c(
+			"HOLD_position",
+			"scale_down"
+		),
+		position = "center",
+		font_size = 8
+	) |>
+	kableExtra::footnote(
+		general = "The reported coefficients were obtained by fitting the selected model formula once to the complete final modeling dataset.",
+		general_title = "Note. ",
+		footnote_as_chunk = TRUE,
+		threeparttable = TRUE,
+		escape = FALSE
+	)
+```
+
+```{r fig-benchmark-comparison, echo=FALSE, fig.cap="(\\#fig:benchmark-comparison) Benchmark observed-versus-predicted comparison. Each panel shows compound-level cross-validated observed and predicted `logKp` values for one benchmark model.", out.width="90%", fig.align="center", fig.pos="H"}
 knitr::include_graphics(
-	"../figures/figure_benchmark_observed_vs_predicted.png"
+	p(
+		"figures",
+		"figure_benchmark_observed_vs_predicted.png"
+	)
 )
 ```
 
@@ -714,4 +877,76 @@ knitr::kable(
 		font_size = 8
 	)
 ```
+
+```{r tableS3-coefficient-stability-summary, echo=FALSE, results='asis'}
+tableS3_coefficient_stability <- read.csv(
+	p(
+		"manuscript",
+		"tables",
+		"tableS3_coefficient_stability_summary.csv"
+	),
+	stringsAsFactors = FALSE,
+	check.names = FALSE
+)
+
+knitr::kable(
+	tableS3_coefficient_stability,
+	caption = "(\\#tab:coefficient-stability-summary) Coefficient-stability summary across compound-level cross-validation folds.",
+	booktabs = TRUE,
+	align = c("l", "r", "r", "r", "r", "r"),
+	format = "latex"
+) |>
+	kableExtra::kable_styling(
+		latex_options = c(
+			"HOLD_position",
+			"scale_down"
+		),
+		position = "center",
+		font_size = 8
+	) |>
+	kableExtra::footnote(
+		general = "Coefficient stability was assessed by refitting the selected model across compound-level training folds. RSD indicates relative standard deviation across fold-specific coefficient estimates.",
+		general_title = "Note. ",
+		footnote_as_chunk = TRUE,
+		threeparttable = TRUE,
+		escape = FALSE
+	)
+```
+
+```{r fig-loco-cv-residual-diagnostics, echo=FALSE, fig.cap="(\\#fig:loco-cv-residual-diagnostics) Descriptor-wise residual error diagnostics for the selected model. Residuals are calculated as observed minus predicted `logKp`.", out.width="95%", fig.align="center", fig.pos="H"}
+knitr::include_graphics(
+		p(
+			"figures",
+			"figureS_loco_cv_residual_by_descriptor.png"
+		)
+)
+```
+
+```{r fig-loco-cv-absolute-error-diagnostics, echo=FALSE, fig.cap="(\\#fig:loco-cv-absolute-error-diagnostics) Descriptor-wise absolute error diagnostics for the selected model.", out.width="95%", fig.align="center", fig.pos="H"}
+knitr::include_graphics(
+		p(
+			"figures",
+			"figureS_loco_cv_absolute_error_by_descriptor.png"
+		)
+)
+```
+
+```{r fig-error-density, echo=FALSE, fig.cap="(\\#fig:error-density) Distribution of compound-level cross-validated prediction errors for the selected model. Prediction error is calculated as observed minus predicted `logKp`.", out.width="95%", fig.align="center", fig.pos="H"}
+knitr::include_graphics(
+	p(
+		"figures",
+		"figureS_loco_cv_error_density.png"
+	)
+)
+```
+
+```{r fig-heteroscedastic-uncertainty, echo=FALSE, fig.cap="(\\#fig:heteroscedastic-uncertainty) Heteroscedastic uncertainty diagnostics for the selected model. The diagnostics evaluate whether prediction uncertainty varies across descriptor space and whether predicted uncertainty corresponds to observed error magnitude.", out.width="85%", fig.align="center", fig.pos="H"}
+knitr::include_graphics(
+	p(
+		"figures",
+		"figureS_heteroscedastic_uncertainty_diagnostics.png"
+	)
+)
+```
+
 # References
