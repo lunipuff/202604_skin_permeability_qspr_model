@@ -1,0 +1,8 @@
+figure,file,title
+Figure 1,figure_1_variance_decomposition,Variance decomposition of logKp
+Figure 2,figure_2_loco_predictions_s2,Compound-disjoint prediction using the extended physicochemical model
+Figure 3,figure_3_qspr_rmse,Compound-disjoint prediction across QSPR approaches
+Figure S1,figure_s1_reference_effects,Estimated reference-level heterogeneity
+Figure S2,figure_s2_sensitivity_rmse,Hierarchical predictive advantage across sensitivity analyses
+Figure S3,figure_s3_residual_qq,Residual Q-Q plot
+Figure S4,figure_s4_residual_vs_fitted,Residuals versus fitted values

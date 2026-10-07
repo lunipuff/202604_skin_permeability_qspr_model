@@ -1,0 +1,6 @@
+section,term,estimate,SE,CI_95,p_value,variance,SD,percent_variance
+Fixed effects,Intercept,-2.6979,0.1004,-2.8961 to -2.4998,<0.001,,,
+Fixed effects,"Temperature, per K",0.0425,0.0114,0.0200 to 0.0650,<0.001,,,
+Variance components,Compound,,,,,0.6960,0.8343,66.8%
+Variance components,Reference,,,,,0.2365,0.4863,22.7%
+Variance components,Residual,,,,,0.1095,0.3309,10.5%

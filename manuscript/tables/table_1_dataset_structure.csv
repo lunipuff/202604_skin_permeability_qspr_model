@@ -1,0 +1,26 @@
+section,metric,value
+Dataset structure,Observations,499.00
+Dataset structure,Compounds,148.00
+Dataset structure,References,69.00
+Dataset structure,Compound-reference combinations,288.00
+Dataset structure,Compounds with >=2 observations,81.00
+Dataset structure,Compounds in >=2 references,46.00
+Dataset structure,Compounds in >=3 references,25.00
+Dataset structure,Compounds varying in temperature or skin thickness,65.00
+Dataset structure,Median observations per compound,2.00
+Dataset structure,Median within-compound logKp range,0.29
+Experimental conditions,"Temperature, K",305.00 median; 295.00–312.00 range
+Experimental conditions,"Skin thickness, mm",0.10 median; 0.01–0.13 range
+Within-compound condition variation,total compounds,149
+Within-compound condition variation,compounds multiple temperatures,39
+Within-compound condition variation,compounds multiple thicknesses,38
+Within-compound condition variation,compounds varying temperature or thickness,65
+Within-compound condition variation,compounds varying temperature and thickness,12
+Within-compound permeability variation,Compounds with >=2 observations,81
+Within-compound permeability variation,Median within-compound logKp range,0.289
+Within-compound permeability variation,Mean within-compound logKp range,0.651
+Within-compound permeability variation,25th percentile logKp range,0.090
+Within-compound permeability variation,75th percentile logKp range,0.856
+Within-compound permeability variation,Maximum within-compound logKp range,3.508
+Within-compound permeability variation,Compounds with logKp range >0.5,32
+Within-compound permeability variation,Compounds with logKp range >1.0,18
