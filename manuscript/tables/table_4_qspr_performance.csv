@@ -1,3 +1,0 @@
-specification,model,n_compounds,n_observations,compound_variance_explained,compound_mean_RMSE,hierarchical_RMSE,RMSE_improvement,compound_mean_MAE,hierarchical_MAE,MAE_improvement,compound_mean_R2,hierarchical_R2
-S1,Size-lipophilicity,148,499,60.4%,0.930,0.773,16.8%,0.743,0.599,19.4%,0.359,0.557
-S2,Extended physicochemical,148,499,61.7%,0.900,0.727,19.2%,0.719,0.567,21.2%,0.399,0.608
