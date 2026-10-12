@@ -110,6 +110,11 @@ domain41 <- read_csv_checked(result_path("41_skinpix_transfer_domain.csv"))
 blind50 <- read_csv_checked(result_path("50_source_blind_loco.csv"))
 wrong50 <- read_csv_checked(result_path("50_wrong_source_calibration.csv"))
 
+loco60 <- read_csv_checked(result_path("60_loco_bootstrap_ci.csv"))
+var60 <- read_csv_checked(result_path("60_variance_component_ci.csv"))
+cal60 <- read_csv_checked(result_path("60_huskin_calibration_ci.csv"))
+wrong60 <- read_csv_checked(result_path("60_wrong_source_ci.csv"))
+
 # ------------------------------------------------------------
 # Lookup helpers
 # ------------------------------------------------------------
@@ -212,7 +217,7 @@ skinpix_one_imp <- 100 * (
 ```
 # Abstract
 
-Human skin permeability measurements are commonly pooled across studies even though permeability depends not only on molecular properties but also on study-specific experimental conditions. We tested whether this heterogeneity can be modeled as a reusable source-associated component rather than treated solely as noise. Three public human-skin permeability resources were used sequentially rather than pooled: the Cheruvu et al. 2022 dataset for development, HuSkinDB for independent replication and held-out-source calibration, and SkinPiX for cross-dataset transfer. Measurement-level mixed-effects models separated molecular, residual compound-specific, literature-source, and residual variation. The molecular component was deliberately simple and prespecified, using molecular weight and logP alone (S1) or a six-descriptor physicochemical specification (S2). In Cheruvu et al., source-associated variation accounted for `r fmt(ch_source,1)`% of modeled random/residual variance; in HuSkinDB it accounted for `r fmt(rep31$reference_variance_percent,1)`%. Source-blind hierarchical prediction improved leave-one-compound-out RMSE by only `r fmt(get_imp("Cheruvu","S1","hierarchical_source_blind"),1)`--`r fmt(get_imp("Cheruvu","S2","hierarchical_source_blind"),1)`% in Cheruvu and did not improve HuSkinDB, whereas known-source prediction improved RMSE by 16.7--18.7% in Cheruvu and 17.0% in HuSkinDB. When entire HuSkin sources were held out, offsets estimated from shared anchor compounds improved prediction of compounds absent from model fitting; among nine matched sources, mean source-level RMSE reduction increased from 31.1% with one anchor to 45.3% with five anchors. A falsification control produced the opposite result: offsets borrowed from other sources worsened prediction. Finally, a model trained only on HuSkinDB transferred to four independent SkinPiX sources. One-anchor calibration reduced mean source-level RMSE by 17.6% across four independent SkinPiX sources containing 54 HuSkin-unseen compounds, all within the HuSkin-defined chemical applicability domain. These findings support a study-aware QSPR framework in which literature-source heterogeneity is modeled explicitly and can be estimated for a new experimental source using a small number of shared compounds.
+Human skin permeability measurements are commonly pooled across studies even though permeability depends not only on molecular properties but also on study-specific experimental conditions. We tested whether this heterogeneity can be modeled as a reusable source-associated component rather than treated solely as noise. Three public human-skin permeability resources were used sequentially rather than pooled: the Cheruvu et al. 2022 dataset for development, HuSkinDB for independent replication and held-out-source calibration, and SkinPiX for cross-dataset transfer. Measurement-level mixed-effects models separated molecular, residual compound-specific, literature-source, and residual variation. The molecular component was deliberately simple and prespecified, using molecular weight and logP alone (S1) or a six-descriptor physicochemical specification (S2). In Cheruvu et al., source-associated variation accounted for 22.8% (95% CI 14.4--31.9%) of modeled random/residual variance; in HuSkinDB it accounted for 44.4% (33.5--54.5%). Source-blind hierarchical prediction did not show a reproducible improvement over conventional aggregation: RMSE improvement was 5.4% (95% CI -3.6--10.9%) for Cheruvu S1, 7.0% (-5.1--14.0%) for Cheruvu S2, and -1.7% (-5.1--1.0%) in HuSkinDB. In contrast, known-source prediction improved RMSE by 16.7% (11.6--21.8%), 18.7% (11.5--23.3%), and 17.0% (10.0--23.8%), respectively. When entire HuSkin sources were held out, offsets estimated from shared anchor compounds improved prediction of compounds absent from model fitting; among nine matched sources, mean source-level RMSE reduction increased from 31.1% (13.4--42.1%) with one anchor to 45.3% (19.2--60.0%) with five anchors. A falsification control showed that calibration using information from the correct source consistently outperformed offsets borrowed from another source. Finally, one-anchor calibration reduced mean source-level RMSE by 17.6% across four independent SkinPiX sources containing 54 HuSkin-unseen compounds.
 
 **Keywords:** skin permeability; QSPR; mixed-effects model; hierarchical model; source calibration; external transfer; applicability domain; HuSkinDB; SkinPiX
 
@@ -376,6 +381,26 @@ The same empirical-Bayes calibration procedure used in the HuSkin internal exper
 
 For compound-level visualization of the one-anchor experiment, calibrated predictions were averaged across the 100 random one-anchor selections for each measurement. This visualization therefore represents expected performance over random selection of one available anchor rather than a single privileged anchor choice.
 
+## Uncertainty estimation
+
+Uncertainty was estimated at the level corresponding to the independent validation unit. For leave-one-compound-out analyses, 95% confidence intervals were obtained by paired cluster bootstrap of held-out compounds. Compounds were sampled with replacement, with all measurements from each selected compound retained together, and RMSE was recalculated from the existing out-of-fold predictions. The same bootstrap sample was used for all prediction approaches within each replicate, preserving the paired comparison. Relative RMSE improvement was calculated against the conventional aggregate QSPR within each bootstrap sample. Two thousand bootstrap replicates were used, with percentile intervals defined by the 2.5th and 97.5th percentiles.
+
+Uncertainty in variance partitioning was estimated by parametric bootstrap of the final REML mixed-effects models. For each simulated dataset, the model was refitted and the compound, source, and residual variance components were normalized by their sum. Ninety-five percent percentile intervals were calculated from 2,000 bootstrap replicates.
+
+For the matched nine-source HuSkin calibration analysis, uncertainty in mean source-level RMSE improvement was estimated by nonparametric bootstrap of literature sources. Nine sources were sampled with replacement in each replicate, with the same sampled source set retained across anchor-panel sizes. Improvement was recalculated as
+
+$$
+100\left(
+1-
+\frac{\overline{\mathrm{RMSE}}_{\mathrm{calibrated}}}
+{\overline{\mathrm{RMSE}}_{\mathrm{uncalibrated}}}
+\right).
+$$
+
+For the wrong-source falsification analysis, sources were similarly bootstrapped within each anchor-panel size. Matched-source and different-source calibration were evaluated on the same resampled sources, allowing direct estimation of the paired difference in mean source-level RMSE.
+
+Formal confidence intervals were not calculated for the external SkinPiX result because only four independent eligible sources were available. External-transfer heterogeneity was instead summarized using individual source results and the number of sources and compounds showing lower error after calibration.
+
 ## Software and reproducibility
 
 All statistical analyses were performed in R. Linear mixed-effects models were fitted with `lme4` [@BatesEtAl2015]. RDKit was used in a separate Python environment to calculate molecular weight and Crippen logP from SMILES [@RDKit]. Analysis scripts were organized sequentially so that data preparation, model fitting, validation, falsification, and manuscript output were separated and reproducible. No results were recalculated in the manuscript-generation scripts.
@@ -389,16 +414,19 @@ Adding a literature-source random intercept to the Cheruvu hierarchy reduced AIC
 In the REML variance decomposition, the random/residual variance in Cheruvu et al. was partitioned into compound-associated (`r fmt(ch_compound,1)`%), source-associated (`r fmt(ch_source,1)`%), and residual (`r fmt(ch_residual,1)`%) components (Table 2; Figure 1). HuSkinDB independently reproduced substantial source-associated variation, with the source component accounting for `r fmt(rep31$reference_variance_percent,1)`% of its modeled random/residual variance. Because the Cheruvu model included temperature as a fixed effect whereas the primary HuSkinDB model did not, these percentages should not be interpreted as a direct quantitative comparison between datasets. Rather, the replicated result is that a substantial source-associated component was present in both datasets.
 
 ```{r table2, results='asis'}
-show2 <- t2
+show2 <- t2[, 1:4, drop = FALSE]
+
 names(show2) <- c(
-	"Dataset", "Compound component (%)", "Source component (%)", "Residual component (%)",
-	"S1 compound variance explained (%)", "S2 compound variance explained (%)",
-	"Temperature coefficient", "Temperature p"
+	"Dataset",
+	"Variance component",
+	"Estimate (%)",
+	"95% CI"
 )
+
 knitr::kable(
 	show2,
 	booktabs = TRUE,
-	caption = "Partitioning of modeled random/residual variance and molecular-signal summary."
+	caption = "Partitioning of modeled random/residual variance. Percentages are normalized over the compound, source, and residual variance components; fixed-effect variation is not included in the denominator. The Cheruvu and HuSkinDB decompositions use different fixed-effect specifications and should therefore be interpreted as independent evidence of substantial source-associated variation rather than compared directly in magnitude."
 )
 ```
 
@@ -415,15 +443,20 @@ LOCO validation separated improvement in the molecular component from improvemen
 HuSkinDB provided the stricter result. Conventional S1 RMSE was `r fmt(get_rmse("HuSkinDB","S1","conventional"),3)`, while source-blind hierarchical RMSE was `r fmt(get_rmse("HuSkinDB","S1","hierarchical_source_blind"),3)`, corresponding to a `r fmt(get_imp("HuSkinDB","S1","hierarchical_source_blind"),1)`% change. Thus, hierarchical estimation did **not** improve the source-independent molecular predictor in HuSkinDB. In contrast, known-source hierarchical prediction reduced RMSE to `r fmt(get_rmse("HuSkinDB","S1","hierarchical_known_source"),3)`, a 17.0% improvement. The large prediction gain therefore arose primarily from correctly representing source context rather than from fitting a universally superior source-independent molecular QSPR.
 
 ```{r table3, results='asis'}
-show3 <- t3
+show3 <- t3[, 1:5, drop = FALSE]
+
 names(show3) <- c(
-	"Dataset", "Specification", "Prediction setting", "RMSE", "MAE", "R2",
+	"Dataset",
+	"Specification",
+	"Prediction setting",
+	"RMSE (95% CI)",
 	"RMSE improvement vs conventional (%)"
 )
+
 knitr::kable(
 	show3,
 	booktabs = TRUE,
-	caption = "Leave-one-compound-out prediction under conventional, source-blind hierarchical, and known-source hierarchical settings."
+	caption = "Leave-one-compound-out prediction under conventional, source-blind hierarchical, and known-source hierarchical settings. Confidence intervals were obtained by paired compound-level bootstrap resampling of held-out compounds."
 )
 ```
 
